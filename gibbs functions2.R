@@ -1,39 +1,64 @@
-ind.func=function(x) {which(x==1)}
-#------------------------------------------------
-
-
-get.summary.stats=function(breakpt,dat,nloc){
-  col.time1=which(colnames(dat)=='time1')
+get.summary.stats=function(breakpt,dat,max.SL,max.TA){
   breakpt1=c(0,breakpt,Inf)
   n=length(breakpt1)
-  res=matrix(NA,n-1,nloc)
+  
+  #get results for SL
+  res.SL=matrix(0,n-1,max.SL)
+  res.TA=matrix(0,n-1,max.TA)
+  res.TAA=matrix(0,n-1,2)
   for (i in 2:n){
     ind=which(breakpt1[i-1]<dat$time1 & dat$time1<breakpt1[i])
-    tmp=dat[ind,-col.time1]
+    tmp=dat[ind,]
     
-    ind.loc<- matrix(NA, nrow(tmp), 1)
-    ind.loc<- apply(tmp, 1, FUN = ind.func)  #creates vector of locations occupied per observation
+    #get SL results
+    tmp1=table(tmp[,'SL'])
+    ind=as.numeric(names(tmp1))
+    res.SL[i-1,ind]=tmp1
     
-    tab<- tabulate(ind.loc)  #ensures that there are values for all nloc
-    if (length(tab) < nloc) {
-      tab<- c(tab,rep(0,nloc-length(tab)))
+    #get TA results
+    tmp1=table(tmp[,'TA'])
+    ind=as.numeric(names(tmp1))
+    res.TA[i-1,ind]=tmp1
+    
+    #get TAA results
+    tmp1=tmp[,'TAA']
+    tmp1=if (length(tmp1[is.na(tmp1)])>0) {
+      tmp1[!is.na(tmp1)]
+      } else { tmp1
     }
-    
-    res[i-1,]=tab #takes count of the each location within given time segment
+    soma=sum(tmp1)
+    res.TAA[i-1,]=c(soma,length(tmp1)-soma)
   }
-  res
+  colnames(res.TAA)=c('n1','n0')
+  list(res.TA=res.TA,res.SL=res.SL,res.TAA=res.TAA)
 }
 #---------------------------------------------
-log.marg.likel=function(alpha,summary.stats,nloc){
-  #get ratio
-  lnum=rowSums(lgamma(alpha+summary.stats))
-  lden=lgamma(nloc*alpha+rowSums(summary.stats))
+log.marg.likel=function(alpha,summary.stats,bern.a,bern.b,max.SL,max.TA){
+  #get ratio for SL
+  lnum=rowSums(lgamma(alpha+summary.stats$res.SL))
+  lden=lgamma(max.SL*alpha+rowSums(summary.stats$res.SL))
   p2=sum(lnum)-sum(lden)
-  p1=nrow(summary.stats)*(lgamma(nloc*alpha)-nloc*lgamma(alpha))
-  p1+p2
+  p1=nrow(summary.stats$res.SL)*(lgamma(max.SL*alpha)-max.SL*lgamma(alpha))
+  p.SL=p1+p2
+  
+  #get ratio for TA
+  lnum=rowSums(lgamma(alpha+summary.stats$res.TA))
+  lden=lgamma(max.TA*alpha+rowSums(summary.stats$res.TA))
+  p2=sum(lnum)-sum(lden)
+  p1=nrow(summary.stats$res.TA)*(lgamma(max.TA*alpha)-max.TA*lgamma(alpha))
+  p.TA=p1+p2
+  
+  #get ratio for TAA
+  lnum=lgamma(bern.a+summary.stats$res.TAA[,'n1'])+lgamma(bern.b+summary.stats$res.TAA[,'n0'])
+  lden=lgamma(rowSums(summary.stats$res.TAA)+bern.a+bern.b)
+  p2=sum(lnum)-sum(lden)
+  p1=nrow(summary.stats$res.TAA)*(lgamma(bern.a+bern.b)-lgamma(bern.a)-lgamma(bern.b))
+  p.TAA=p1+p2
+  
+  p.SL+p.TA+p.TAA
 }
 #---------------------------------------------
-samp.move=function(breakpt,max.time,dat,alpha,nloc){
+samp.move=function(breakpt,max.time,dat,alpha,bern.a,bern.b,max.SL,max.TA){
   breakpt.old=breakpt
   p=length(breakpt)
   rand1=runif(1)	
@@ -68,17 +93,54 @@ samp.move=function(breakpt,max.time,dat,alpha,nloc){
   }
   
   #get sufficient statistics
-  stats.old=get.summary.stats(breakpt=breakpt.old,dat=dat,nloc=nloc)
-  stats.new=get.summary.stats(breakpt=breakpt.new,dat=dat,nloc=nloc)
+  stats.old=get.summary.stats(breakpt=breakpt.old,dat=dat,max.SL=max.SL,max.TA=max.TA)
+  stats.new=get.summary.stats(breakpt=breakpt.new,dat=dat,max.SL=max.SL,max.TA=max.TA)
   
   #get marginal loglikel
-  pold=log.marg.likel(alpha=alpha,summary.stats=stats.old,nloc=nloc)
-  pnew=log.marg.likel(alpha=alpha,summary.stats=stats.new,nloc=nloc)+log(p0)
+  pold=log.marg.likel(alpha=alpha,summary.stats=stats.old,bern.a=bern.a,bern.b=bern.b,max.SL=max.SL,max.TA=max.TA)
+  pnew=log.marg.likel(alpha=alpha,summary.stats=stats.new,bern.a=bern.a,bern.b=bern.b,max.SL=max.SL,max.TA=max.TA)+log(p0)
   prob=exp(pnew-pold)
   rand2=runif(1)
   
   if (rand2<prob) return(list(breakpt.new, pnew))
   return(list(breakpt.old, pold))
-  
 }
-
+#---------------------------------------------
+assign.rel_angle.bin=function(dat){  #creates 8 bins
+  angle.bin.lims=seq(from=-pi, to=pi, by=pi/4)
+  dat$TA<- NA
+  
+  for(i in 1:length(angle.bin.lims)) {
+    tmp=which(dat$rel.angle >= angle.bin.lims[i] & dat$rel.angle < angle.bin.lims[i+1])
+    dat[tmp,"TA"]=i
+  }
+  dat
+}
+#---------------------------------------------
+assign.dist.bin=function(dat){  #creates 6 bins
+  max.dist=max(dat$dist, na.rm = T) #using value from entire dataset, not specific time segment
+  upper90.thresh=as.numeric(quantile(dat$dist, 0.90, na.rm=T)) #using value from entire dataset
+  
+  dist.bin.lims=seq(from=0, to=upper90.thresh, length.out = 6)
+  dist.bin.lims=c(dist.bin.lims, max.dist)
+  dat$SL<- NA
+  #names(dat)[7]<- "dist"
+  
+  for(i in 1:length(dist.bin.lims)) {
+    tmp=which(dat$dist >= dist.bin.lims[i] & dat$dist < dist.bin.lims[i+1])
+    dat[tmp,"SL"]=i
+  }
+  tmp=which(dat$dist == max.dist)
+  dat[tmp,"SL"]=6
+  
+  dat
+}
+#---------------------------------------------
+chng.rel_angle.sign=function(dat){
+  dat$TAA<- NA
+  
+  for(i in 1:(nrow(dat)-1)) {
+    dat$TAA[i+1]<- ifelse(sign(dat$rel.angle[i]) == sign(dat$rel.angle[i+1]), 1, 0)
+  }
+  dat
+}
