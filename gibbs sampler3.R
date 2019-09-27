@@ -6,15 +6,15 @@ library(coda)
 
 set.seed(1)
 
-source('gibbs functions2.R')
+source('gibbs functions3.R')
 dat<- read.csv("Snail Kite Gridded Data.csv", header = T, sep = ",")
 names(dat)[7]<- "dist" #change to generic form
 
 #discretize step length, turning angle, and turning angle autocorr by ID
-dat1<- dat %>% filter(id==1) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% veloc.persist()
-dat12<- dat %>% filter(id==12) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% veloc.persist()
-dat19<- dat %>% filter(id==19) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% veloc.persist()
-dat27<- dat %>% filter(id==27) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% veloc.persist()
+dat1<- dat %>% filter(id==1) %>% veloc.persist() %>% veloc.turn
+dat12<- dat %>% filter(id==12) %>% veloc.persist() %>% veloc.turn()
+dat19<- dat %>% filter(id==19) %>% veloc.persist() %>% veloc.turn()
+dat27<- dat %>% filter(id==27) %>% veloc.persist() %>% veloc.turn()
 
 dat1$time1<- 1:nrow(dat1)
 dat12$time1<- 1:nrow(dat12)
@@ -33,9 +33,8 @@ alpha=0.01
 
 #useful stuff
 max.time=max(dat1$time1)
-max.SL=max(dat1$SL, na.rm = T)
-max.TA=max(dat1$TA, na.rm = T)
 max.Vp=max(dat1$Vp, na.rm = T)
+max.Vt=max(dat1$Vt, na.rm = T)
 
 #starting values
 breakpt=mean(dat1$time1)
@@ -48,8 +47,8 @@ store.param=matrix(NA,ngibbs,2)
 
 for (i in 1:ngibbs){
   print(i)
-  vals=samp.move2(breakpt=breakpt,max.time=max.time,dat=dat1,
-                    alpha=alpha,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)   
+  vals=samp.move(breakpt=breakpt,max.time=max.time,dat=dat1,
+                  alpha=alpha,max.Vp=max.Vp,max.Vt=max.Vt)   
   
   breakpt=vals[[1]]
   
@@ -62,11 +61,9 @@ for (i in 1:ngibbs){
 length(breakpt)
 #write.csv(breakpt, "ID1 Breakpoints (Behavior).csv", row.names = F)
 
-par(mfrow=c(3,1))
-plot(dat1$SL); abline(v=breakpt,col='red')
-plot(dat1$TA); abline(v=breakpt,col='red')
+par(mfrow=c(2,1))
 plot(dat1$Vp); abline(v=breakpt,col='red')
-
+plot(dat1$Vt); abline(v=breakpt,col='red')
 
 
 ## MCMC traceplots
@@ -109,7 +106,7 @@ store.param=matrix(NA,ngibbs,2)
 for (i in 1:ngibbs){
   print(i)
   vals=samp.move2(breakpt=breakpt,max.time=max.time,dat=dat12,
-                 alpha=alpha,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)   
+                  alpha=alpha,max.Vp=max.Vp,max.Vt=max.Vt)   
   
   breakpt=vals[[1]]
   
@@ -169,7 +166,7 @@ store.param=matrix(NA,ngibbs,2)
 for (i in 1:ngibbs){
   print(i)
   vals=samp.move2(breakpt=breakpt,max.time=max.time,dat=dat19,
-                 alpha=alpha,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)   
+                  alpha=alpha,max.Vp=max.Vp,max.Vt=max.Vt)   
   
   breakpt=vals[[1]]
   
@@ -229,7 +226,7 @@ store.param=matrix(NA,ngibbs,2)
 for (i in 1:ngibbs){
   print(i)
   vals=samp.move2(breakpt=breakpt,max.time=max.time,dat=dat27,
-                 alpha=alpha,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)   
+                  alpha=alpha,max.Vp=max.Vp,max.Vt=max.Vt)   
   
   breakpt=vals[[1]]
   
