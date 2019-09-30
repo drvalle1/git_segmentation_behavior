@@ -1,48 +1,28 @@
-get.summary.stats=function(breakpt,dat,max.SL,max.TA,max.Vp){ #to change Vp to multinomial
+get.summary.stats=function(breakpt,dat,max.Vp,max.Vt){ #to change Vp to multinomial
   breakpt1=c(0,breakpt,Inf)
   n=length(breakpt1)
   
   #get results for SL
-  res.SL=matrix(0,n-1,max.SL)
-  res.TA=matrix(0,n-1,max.TA)
   res.Vp=matrix(0,n-1,max.Vp)
+  res.Vt=matrix(0,n-1,max.Vt)
   for (i in 2:n){
     ind=which(breakpt1[i-1]<dat$time1 & dat$time1<breakpt1[i])
     tmp=dat[ind,]
-    
-    #get SL results
-    tmp1=table(tmp[,'SL'])
-    ind=as.numeric(names(tmp1))
-    res.SL[i-1,ind]=tmp1
-    
-    #get TA results
-    tmp1=table(tmp[,'TA'])
-    ind=as.numeric(names(tmp1))
-    res.TA[i-1,ind]=tmp1
     
     #get Vp results
     tmp1=table(tmp[,'Vp'])
     ind=as.numeric(names(tmp1))
     res.Vp[i-1,ind]=tmp1
+    
+    #get Vt results
+    tmp1=table(tmp[,'Vt'])
+    ind=as.numeric(names(tmp1))
+    res.Vt[i-1,ind]=tmp1
   }
-  list(res.TA=res.TA,res.SL=res.SL,res.Vp=res.Vp)
+  list(res.Vp=res.Vp,res.Vt=res.Vt)
 }
 #---------------------------------------------
-log.marg.likel=function(alpha,summary.stats,max.SL,max.TA,max.Vp){ #to change Vp to multinomial
-  #get ratio for SL
-  lnum=rowSums(lgamma(alpha+summary.stats$res.SL))
-  lden=lgamma(max.SL*alpha+rowSums(summary.stats$res.SL))
-  p2=sum(lnum)-sum(lden)
-  p1=nrow(summary.stats$res.SL)*(lgamma(max.SL*alpha)-max.SL*lgamma(alpha))
-  p.SL=p1+p2
-  
-  #get ratio for TA
-  lnum=rowSums(lgamma(alpha+summary.stats$res.TA))
-  lden=lgamma(max.TA*alpha+rowSums(summary.stats$res.TA))
-  p2=sum(lnum)-sum(lden)
-  p1=nrow(summary.stats$res.TA)*(lgamma(max.TA*alpha)-max.TA*lgamma(alpha))
-  p.TA=p1+p2
-  
+log.marg.likel=function(alpha,summary.stats,max.Vp,max.Vt){ #to change Vp to multinomial
   #get ratio for Vp
   lnum=rowSums(lgamma(alpha+summary.stats$res.Vp))
   lden=lgamma(max.Vp*alpha+rowSums(summary.stats$res.Vp))
@@ -50,10 +30,17 @@ log.marg.likel=function(alpha,summary.stats,max.SL,max.TA,max.Vp){ #to change Vp
   p1=nrow(summary.stats$res.Vp)*(lgamma(max.Vp*alpha)-max.Vp*lgamma(alpha))
   p.Vp=p1+p2
   
-  p.SL+p.TA+p.Vp
+  #get ratio for Vt
+  lnum=rowSums(lgamma(alpha+summary.stats$res.Vt))
+  lden=lgamma(max.Vt*alpha+rowSums(summary.stats$res.Vt))
+  p2=sum(lnum)-sum(lden)
+  p1=nrow(summary.stats$res.Vt)*(lgamma(max.Vt*alpha)-max.Vt*lgamma(alpha))
+  p.Vt=p1+p2
+  
+  p.Vp+p.Vt
 }
 #---------------------------------------------
-samp.move=function(breakpt,max.time,dat,alpha,max.SL,max.TA,max.Vp){ #to change Vp to multinomial
+samp.move=function(breakpt,max.time,dat,alpha,max.Vp,max.Vt){ #to change Vp to multinomial
   breakpt.old=breakpt
   p=length(breakpt)
   rand1=runif(1)	
@@ -88,12 +75,12 @@ samp.move=function(breakpt,max.time,dat,alpha,max.SL,max.TA,max.Vp){ #to change 
   }
   
   #get sufficient statistics
-  stats.old=get.summary.stats(breakpt=breakpt.old,dat=dat,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)
-  stats.new=get.summary.stats(breakpt=breakpt.new,dat=dat,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)
+  stats.old=get.summary.stats(breakpt=breakpt.old,dat=dat,max.Vp=max.Vp,max.Vt=max.Vt)
+  stats.new=get.summary.stats(breakpt=breakpt.new,dat=dat,max.Vp=max.Vp,max.Vt=max.Vt)
   
   #get marginal loglikel
-  pold=log.marg.likel(alpha=alpha,summary.stats=stats.old,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)
-  pnew=log.marg.likel(alpha=alpha,summary.stats=stats.new,max.SL=max.SL,max.TA=max.TA,max.Vp=max.Vp)+log(p0)
+  pold=log.marg.likel(alpha=alpha,summary.stats=stats.old,max.Vp=max.Vp,max.Vt=max.Vt)
+  pnew=log.marg.likel(alpha=alpha,summary.stats=stats.new,max.Vp=max.Vp,max.Vt=max.Vt)+log(p0)
   prob=exp(pnew-pold)
   rand2=runif(1)
   
@@ -104,7 +91,7 @@ samp.move=function(breakpt,max.time,dat,alpha,max.SL,max.TA,max.Vp){ #to change 
 veloc.persist=function(dat) {  #persistence velocity via Gurarie et al 2009; create 8 bins
   dist=dat$dist*1000  #from km to m 
   t.step=dat$dt
-  theta=dat$rel.angle
+  theta=dat$abs.angle
   
   Vp<- (dist/t.step)*cos(theta)
   veloc.persist.lims=seq(from=min(Vp, na.rm = T), to=max(Vp, na.rm = T), length.out = 9)
@@ -114,6 +101,25 @@ veloc.persist=function(dat) {  #persistence velocity via Gurarie et al 2009; cre
     tmp=which(Vp >= veloc.persist.lims[i] & Vp < veloc.persist.lims[i+1])
     dat[tmp,"Vp"]=i
   }
+  tmp=which(Vp == veloc.persist.lims[9])
+  dat[tmp,"Vp"]=8
   dat
 }
 #---------------------------------------------
+veloc.turn=function(dat) {  #turning velocity via Gurarie et al 2009; create 8 bins
+  dist=dat$dist*1000  #from km to m 
+  t.step=dat$dt
+  theta=dat$abs.angle
+  
+  Vt<- (dist/t.step)*sin(theta)
+  veloc.turn.lims=seq(from=min(Vt, na.rm = T), to=max(Vt, na.rm = T), length.out = 9)
+  dat$Vt<- NA
+  
+  for(i in 1:length(veloc.turn.lims)) {
+    tmp=which(Vt >= veloc.turn.lims[i] & Vt < veloc.turn.lims[i+1])
+    dat[tmp,"Vt"]=i
+  }
+  tmp=which(Vt == veloc.turn.lims[9])
+  dat[tmp,"Vt"]=8
+  dat
+}

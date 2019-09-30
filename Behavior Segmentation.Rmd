@@ -1,0 +1,20 @@
+---
+title: "Behavior Segmentation"
+author: "Josh Cullen"
+date: "September 30, 2019"
+output: pdf_document
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+# Background
+
+After running the time segmentation model, a behavioral segmentation model was run for the entire dataset of each individual. The original behavior segmentation model uses three movement parameters (step length, turning angle, and turning angle autocorrelation) to identify distinct behavioral states. Since the output from this original model was not satisfactory upon visualization of the movement parameters and their associated breakpoints, other forms of this model were tested. While multiple derived variables were used in addition to the original parameters of the original model, a separate model that only used persistence and turning velocity (*V~p~* and *V~t~*) were included. These variables were inlcluded per their utility described in Gurarie et al. 2009:
+
+> "We further transform the data by decomposing every speed estimate and turning angle into orthogonal components of persistence velocity *V~p~(t)* and turning velocity *V~t~(t)* defined as $V_p(t) = V(t)cos(\theta(t))$ and $V_t(t) = V(t)sin(\theta(t))$, where *V(t)* is the speed and $\theta(t)$ is the turning angle at time *t*. *V~p~* captures the tendency and magnitude of a movement to persist in a given direction while *V~t~* captures the tendency of movement to head in a perpendicular direction in a given time interval. Thus, the primary descriptive features of movement, namely speed, directional persistence and variability are captured in these variables."
+
+\linebreak
+Additionally, the segmentation of behaviors was mapped to discern if the models characterized behavioral changes appropriately. This was conducted for each of the four individual snail kites.
