@@ -59,11 +59,13 @@ for (i in 1:ngibbs){
 
 
 length(breakpt)
-#write.csv(breakpt, "ID1 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(breakpt, "ID1 Breakpoints (Behavior) Vp_Vt.csv", row.names = F)
 
+png("ID 1 behav seg plot Vp_Vt.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(2,1))
-plot(dat1$Vp); abline(v=breakpt,col='red')
-plot(dat1$Vt); abline(v=breakpt,col='red')
+plot(dat1$Vp,xlab = "", ylab = "Vp"); abline(v=breakpt,col='red')
+plot(dat1$Vt,xlab = "Time", ylab = "Vt"); abline(v=breakpt,col='red')
+dev.off()
 
 
 ## MCMC traceplots
@@ -112,15 +114,17 @@ for (i in 1:ngibbs){
   #store results
   store.param[i,]=c(length(vals[[1]]), vals[[2]])
 }
-###Takes ~ 7 min to run 20000 iterations; identified 8 breakpoints
+###Takes ~ 7 min to run 20000 iterations; identified 9 breakpoints
 
 
 length(breakpt)
-#write.csv(breakpt, "ID12 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(breakpt, "ID12 Breakpoints (Behavior) Vp_Vt.csv", row.names = F)
 
+png("ID 12 behav seg plot Vp_Vt.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(2,1))
-plot(dat12$Vp); abline(v=breakpt,col='red')
-plot(dat12$Vt); abline(v=breakpt,col='red')
+plot(dat12$Vp,xlab = "", ylab = "Vp"); abline(v=breakpt,col='red')
+plot(dat12$Vt,xlab = "Time", ylab = "Vt"); abline(v=breakpt,col='red')
+dev.off()
 
 
 
@@ -174,11 +178,13 @@ for (i in 1:ngibbs){
 
 
 length(breakpt)
-#write.csv(breakpt, "ID19 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(breakpt, "ID19 Breakpoints (Behavior) Vp_Vt.csv", row.names = F)
 
+png("ID 19 behav seg plot Vp_Vt.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(2,1))
-plot(dat19$Vp); abline(v=breakpt,col='red')
-plot(dat19$Vt); abline(v=breakpt,col='red')
+plot(dat19$Vp,xlab = "", ylab = "Vp"); abline(v=breakpt,col='red')
+plot(dat19$Vt,xlab = "Time", ylab = "Vt"); abline(v=breakpt,col='red')
+dev.off()
 
 
 
@@ -232,11 +238,13 @@ for (i in 1:ngibbs){
 
 
 length(breakpt)
-#write.csv(breakpt, "ID27 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(breakpt, "ID27 Breakpoints (Behavior) Vp_Vt.csv", row.names = F)
 
+png("ID 27 behav seg plot Vp_Vt.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(2,1))
-plot(dat27$Vp); abline(v=breakpt,col='red')
-plot(dat27$Vt); abline(v=breakpt,col='red')
+plot(dat27$Vp,xlab = "", ylab = "Vp"); abline(v=breakpt,col='red')
+plot(dat27$Vt,xlab = "Time", ylab = "Vt"); abline(v=breakpt,col='red')
+dev.off()
 
 
 
