@@ -1,7 +1,7 @@
 ---
 title: "Behavior Segmentation"
 author: "Josh Cullen"
-date: "September 30, 2019"
+date: "October 2, 2019"
 output: pdf_document
 urlcolor: blue
 ---
@@ -17,12 +17,12 @@ After running the time segmentation model, a behavioral segmentation model was r
 > "We further transform the data by decomposing every speed estimate and turning angle into orthogonal components of persistence velocity *V~p~(t)* and turning velocity *V~t~(t)* defined as $V_p(t) = V(t)cos(\theta(t))$ and $V_t(t) = V(t)sin(\theta(t))$, where *V(t)* is the speed and $\theta(t)$ is the turning angle at time *t*. *V~p~* captures the tendency and magnitude of a movement to persist in a given direction while *V~t~* captures the tendency of movement to head in a perpendicular direction in a given time interval. Thus, the primary descriptive features of movement, namely speed, directional persistence and variability are captured in these variables."
 
 
-Additionally, the segmentation of behaviors was mapped to discern if the models characterized behavioral changes appropriately. This was conducted for each of the four individual snail kites. All models were analyzed on only data that was filtered for a time step of 1 h (3600 s); a quick analysis showed that a 1 h time step produces the greatest number of total observations.
+Additionally, the segmentation of behaviors was mapped to discern if the models characterized behavioral changes appropriately. This was conducted for each of the four individual snail kites. All models were analyzed on only data that were filtered for a time step of 1 h (3600 s); a quick analysis showed that a 1 h time step produces the greatest number of total observations.
 
 
 # Original Model
 
-All of the behavioral segmentation models analyzed with the original variables (SL,TA,TAA) were run using 20000 iterations. Additional model output (# of breakpoints, log marginal likelihood) was also evaluated with traceplots, but are not included in this document. Based upon the traceplots of these variables however, it appears that a greater number of iterations is likely necessary.
+All of the behavioral segmentation models analyzed with the original variables (SL,TA,TAA) were run using 50000 iterations. Additional model output (# of breakpoints, log marginal likelihood) was also evaluated with traceplots, but are not included in this document. Based upon the traceplots of these variables however, it appears that a greater number of iterations is likely not needed.
 
 ```{r, load packages}
 library(knitr)
@@ -35,23 +35,27 @@ library(sf)
 
 
 ### ID 1
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 1 behav seg plot.png")
+include_graphics("ID 1 behav seg image.png")
 ```
 
 ### ID 12
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 12 behav seg plot.png")
+include_graphics("ID 12 behav seg image.png")
 ```
 
 ### ID 19
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 19 behav seg plot.png")
+include_graphics("ID 19 behav seg image.png")
 ```
 
 ### ID 27
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 27 behav seg plot.png")
+include_graphics("ID 27 behav seg image.png")
 ```
 
 
@@ -60,23 +64,27 @@ include_graphics("ID 27 behav seg plot.png")
 As opposed to the original model that evaluated three movement parameters, two of which were estimated from a multinomial distribution (SL,TA) and one from a Bernoulli distribution (TAA), the velocty model only includes two variables that were both estimated from a multinomial distribution. Due to the traceplots of the breakpoints and LML not reaching a clear asymptote, the Gibbs samplers were run for 20000 iterations, but likely would need more to have converged properly.
 
 ### ID 1
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 1 behav seg plot Vp_Vt.png")
+include_graphics("ID 1 behav seg image Vp_Vt.png")
 ```
 
 ### ID 12
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 12 behav seg plot Vp_Vt.png")
+include_graphics("ID 12 behav seg image Vp_Vt.png")
 ```
 
 ### ID 19
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 19 behav seg plot Vp_Vt.png")
+include_graphics("ID 19 behav seg image Vp_Vt.png")
 ```
 
 ### ID 27
-```{r, out.width='80%', fig.align='center'}
+```{r, out.width='80%'}
 include_graphics("ID 27 behav seg plot Vp_Vt.png")
+include_graphics("ID 27 behav seg image Vp_Vt.png")
 ```
 
 
@@ -102,7 +110,7 @@ dat27$time1<- 1:nrow(dat27)
 
 ### Original Model
 
-Some of the following behavioral segments appear to match up well with movement patterns, while others appear to be aggregated. This also varies by individual and the duration of the track. For example, **ID 1** has 8 estimated behavioral segments, whereas **ID 27** only has 2.
+Some of the following behavioral segments appear to match up well with movement patterns, while others appear to be aggregated. This also varies by individual and the duration of the track. For example, **ID 12** has 31 estimated behavioral segments, whereas **ID 27** only has 2.
 
 ```{r load map data}
 #Load FL map data
@@ -150,7 +158,7 @@ ggplot() +
   geom_path(data = dat1, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
   geom_point(data = dat1, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
-  labs(x = "Easting", y = "Northing", title = "ID 1 (n=8)") +
+  labs(x = "Easting", y = "Northing", title = "ID 1 (n=26)") +
   theme_bw()
 ```
 
@@ -162,9 +170,9 @@ ggplot() +
   geom_path(data = dat1, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
   geom_point(data = dat1, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
-  labs(x = "Easting", y = "Northing", title = "ID 1 (n=8)") +
+  labs(x = "Easting", y = "Northing", title = "ID 1 (n=26)") +
   theme_bw() +
-  facet_wrap(~behav.seg, nrow = 2)
+  facet_wrap(~behav.seg, nrow = 4)
 ```
 
 
@@ -177,7 +185,7 @@ ggplot() +
   geom_path(data = dat12, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
   geom_point(data = dat12, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
-  labs(x = "Easting", y = "Northing", title = "ID 12 (n=6)") +
+  labs(x = "Easting", y = "Northing", title = "ID 12 (n=31)") +
   theme_bw()
 ```
 
@@ -189,9 +197,9 @@ ggplot() +
   geom_path(data = dat12, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
   geom_point(data = dat12, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
-  labs(x = "Easting", y = "Northing", title = "ID 12 (n=6)") +
+  labs(x = "Easting", y = "Northing", title = "ID 12 (n=31)") +
   theme_bw() +
-  facet_wrap(~behav.seg, nrow = 2)
+  facet_wrap(~behav.seg, nrow = 5)
 ```
 
 
@@ -204,7 +212,7 @@ ggplot() +
   geom_path(data = dat19, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
   geom_point(data = dat19, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
-  labs(x = "Easting", y = "Northing", title = "ID 19 (n=3)") +
+  labs(x = "Easting", y = "Northing", title = "ID 19 (n=5)") +
   theme_bw()
 ```
 
@@ -216,7 +224,7 @@ ggplot() +
   geom_path(data = dat19, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
   geom_point(data = dat19, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
-  labs(x = "Easting", y = "Northing", title = "ID 19 (n=3)") +
+  labs(x = "Easting", y = "Northing", title = "ID 19 (n=5)") +
   theme_bw() +
   facet_wrap(~behav.seg, nrow = 1)
 ```
@@ -256,7 +264,6 @@ ggplot() +
 
 In general, this model estimated a greater number of behavioral segments than the original model, but not substantially more. There appears to be some agreement between both sets of breakpoints, but there appear to be more differences. These differences in segmentation occur with respect to whether certain foray loops or locations of intense use are separated out or grouped together.
 
-\pagebreak
 
 ```{r behavior segmentation veloc}
 obs1.breakpts_veloc<- read.csv("ID1 Breakpoints (Behavior) Vp_Vt.csv", header = T, sep = ",")
