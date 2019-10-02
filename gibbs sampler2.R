@@ -7,20 +7,27 @@ library(coda)
 set.seed(1)
 
 source('gibbs functions2.R')
+source('helper functions.R')
 dat<- read.csv("Snail Kite Gridded Data.csv", header = T, sep = ",")
-names(dat)[7]<- "dist" #change to generic form
+names(dat)[7]<- "dist"  #change to generic form
 
 #discretize step length, turning angle, and turning angle autocorr by ID
-dat1<- dat %>% filter(id==1) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
-dat12<- dat %>% filter(id==12) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
-dat19<- dat %>% filter(id==19) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
-dat27<- dat %>% filter(id==27) %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
+#only subset obs w/ 1 hr time step; removal of 5815 total obs
+dat1<- dat %>% filter(id==1) %>% mutate(obs = 1:nrow(.)) %>% filter(dt==3600) %>% mutate(time1 = 1:nrow(.)) 
+dat12<- dat %>% filter(id==12) %>% mutate(obs = 1:nrow(.)) %>% filter(dt==3600) %>% mutate(time1 = 1:nrow(.)) 
+dat19<- dat %>% filter(id==19) %>% mutate(obs = 1:nrow(.)) %>% filter(dt==3600) %>% mutate(time1 = 1:nrow(.)) 
+dat27<- dat %>% filter(id==27) %>% mutate(obs = 1:nrow(.)) %>% filter(dt==3600) %>% mutate(time1 = 1:nrow(.))
 
-dat1$time1<- 1:nrow(dat1)
-dat12$time1<- 1:nrow(dat12)
-dat19$time1<- 1:nrow(dat19)
-dat27$time1<- 1:nrow(dat27)
 
+dat1<- dat1 %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
+dat12<- dat12 %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
+dat19<- dat19 %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
+dat27<- dat27 %>% assign.rel_angle.bin() %>% assign.dist.bin() %>% chng.rel_angle.sign()
+
+
+dat.list<- list(dat1=dat1,dat12=dat12,dat19=dat19,dat27=dat27)
+
+#for (i in 1:length(dat.list)) {   WORK ON LOOPING OVER IDs
 
 #################################
 #### Run Gibbs Sampler by ID ####
@@ -41,7 +48,7 @@ max.TA=max(dat1$TA, na.rm = T)
 breakpt=mean(dat1$time1)
 
 #number of iterations
-ngibbs=10000
+ngibbs=20000
 
 #matrix to store results
 store.param=matrix(NA,ngibbs,2)
@@ -57,17 +64,29 @@ for (i in 1:ngibbs){
   #store results
   store.param[i,]=c(length(vals[[1]]), vals[[2]])
 }
-###Takes ~ 4 min to run 10000 iterations; identified 8 breakpoints
+###Takes ~ 6 min to run 20000 iterations; identified 7 breakpoints
 
 
 length(breakpt)
 #write.csv(breakpt, "ID1 Breakpoints (Behavior).csv", row.names = F)
 
+#PLOT
 png("ID 1 behav seg plot.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(3,1))
-plot(dat1$SL, xlab = "", ylab = "SL"); abline(v=breakpt,col='red')
+plot(dat1$SL, xlab = "", ylab = "SL"); abline(v=breakpt,col='red'); title(main="ID 1 (n=7)")
 plot(dat1$TA, xlab = "", ylab = "TA"); abline(v=breakpt,col='red')
 plot(dat1$TAA, xlab = "Time", ylab = "TAA"); abline(v=breakpt,col='red')
+dev.off()
+
+
+#IMAGE
+behav.list<- behav.seg.image(dat1)
+
+png("ID 1 behav seg image.png", width = 8, height = 6, units = "in", res = 400)
+par(mfrow=c(3,1))
+image(behav.list$SL, xlab = "", ylab = "SL"); abline(v=breakpt/nrow(dat1),col='blue'); title(main="ID 1 (n=7)")
+image(behav.list$TA, xlab = "", ylab = "TA"); abline(v=breakpt/nrow(dat1),col='blue')
+image(behav.list$TAA, xlab = "Time", ylab = "TAA"); abline(v=breakpt/nrow(dat1),col='blue')
 dev.off()
 
 
@@ -104,7 +123,7 @@ max.TA=max(dat12$TA, na.rm = T)
 breakpt=mean(dat12$time1)
 
 #number of iterations
-ngibbs=10000
+ngibbs=40000
 
 #matrix to store results
 store.param=matrix(NA,ngibbs,2)
@@ -120,17 +139,29 @@ for (i in 1:ngibbs){
   #store results
   store.param[i,]=c(length(vals[[1]]), vals[[2]])
 }
-###Takes ~ 2 min to run 10000 iterations; identified 3 breakpoints
+###Takes ~ 6 min to run 20000 iterations; identified 1 breakpoint
 
 
 length(breakpt)
 #write.csv(breakpt, "ID12 Breakpoints (Behavior).csv", row.names = F)
 
+#PLOT
 png("ID 12 behav seg plot.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(3,1))
 plot(dat12$SL, xlab = "", ylab = "SL"); abline(v=breakpt,col='red')
 plot(dat12$TA, xlab = "", ylab = "TA"); abline(v=breakpt,col='red')
 plot(dat12$TAA, xlab = "Time", ylab = "TAA"); abline(v=breakpt,col='red')
+dev.off()
+
+
+#IMAGE
+behav.list<- behav.seg.image(dat12)
+
+png("ID 12 behav seg image.png", width = 8, height = 6, units = "in", res = 400)
+par(mfrow=c(3,1))
+image(behav.list$SL, xlab = "", ylab = "SL"); abline(v=breakpt/nrow(dat12),col='blue'); title(main="ID 12 (n=1)")
+image(behav.list$TA, xlab = "", ylab = "TA"); abline(v=breakpt/nrow(dat12),col='blue')
+image(behav.list$TAA, xlab = "Time", ylab = "TAA"); abline(v=breakpt/nrow(dat12),col='blue')
 dev.off()
 
 
@@ -167,7 +198,7 @@ max.TA=max(dat19$TA, na.rm = T)
 breakpt=mean(dat19$time1)
 
 #number of iterations
-ngibbs=10000
+ngibbs=20000
 
 #matrix to store results
 store.param=matrix(NA,ngibbs,2)
@@ -183,7 +214,7 @@ for (i in 1:ngibbs){
   #store results
   store.param[i,]=c(length(vals[[1]]), vals[[2]])
 }
-###Takes ~ 2 min to run 10000 iterations; identified 2 breakpoints
+###Takes ~ 2 min to run 20000 iterations; identified 1 breakpoint
 
 
 length(breakpt)
@@ -230,7 +261,7 @@ max.TA=max(dat27$TA, na.rm = T)
 breakpt=mean(dat27$time1)
 
 #number of iterations
-ngibbs=10000
+ngibbs=20000
 
 #matrix to store results
 store.param=matrix(NA,ngibbs,2)
@@ -246,7 +277,7 @@ for (i in 1:ngibbs){
   #store results
   store.param[i,]=c(length(vals[[1]]), vals[[2]])
 }
-###Takes ~ 1 min to run 10000 iterations; identified 1 breakpoint
+###Takes ~ 1 min to run 20000 iterations; identified 1 breakpoint
 
 
 length(breakpt)
