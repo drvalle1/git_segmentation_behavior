@@ -29,7 +29,7 @@ get.summary.stats=function(breakpt,dat,max.SL,max.TA){
     soma=sum(tmp1)
     res.TAA[i-1,]=c(soma,length(tmp1)-soma)
   }
-  colnames(res.TAA)=c('n1','n0')
+  colnames(res.TAA)=c('n0','n1')
   list(res.TA=res.TA,res.SL=res.SL,res.TAA=res.TAA)
 }
 #---------------------------------------------

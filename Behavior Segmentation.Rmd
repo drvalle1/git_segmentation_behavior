@@ -1,7 +1,7 @@
 ---
 title: "Behavior Segmentation"
 author: "Josh Cullen"
-date: "October 2, 2019"
+date: "October 3, 2019"
 output: pdf_document
 urlcolor: blue
 ---
@@ -129,8 +129,6 @@ ggplot() +
   geom_sf(data = fl) +
   coord_sf(xlim = c(min(dat$utmlong-20000), max(dat$utmlong+20000)),
            ylim = c(min(dat$utmlat-20000), max(dat$utmlat+20000)), expand = FALSE) +
-  geom_path(data = dat1.full, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
-  geom_point(data = dat1.full, aes(x=utmlong, y=utmlat), color='gray75', size=1) +
   geom_point(data = dat1, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
   labs(x = "Easting", y = "Northing", title = "ID 1 (n=26)") +
@@ -158,8 +156,6 @@ ggplot() +
   geom_sf(data = fl) +
   coord_sf(xlim = c(min(dat$utmlong-20000), max(dat$utmlong+20000)),
            ylim = c(min(dat$utmlat-20000), max(dat$utmlat+20000)), expand = FALSE) +
-  geom_path(data = dat12.full, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
-  geom_point(data = dat12.full, aes(x=utmlong, y=utmlat), color='gray75', size=1) +
   geom_point(data = dat12, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
   labs(x = "Easting", y = "Northing", title = "ID 12 (n=31)") +
@@ -187,8 +183,6 @@ ggplot() +
   geom_sf(data = fl) +
   coord_sf(xlim = c(min(dat$utmlong-20000), max(dat$utmlong+20000)),
            ylim = c(min(dat$utmlat-20000), max(dat$utmlat+20000)), expand = FALSE) +
-  geom_path(data = dat19.full, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
-  geom_point(data = dat19.full, aes(x=utmlong, y=utmlat), color='gray75', size=1) +
   geom_point(data = dat19, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
   labs(x = "Easting", y = "Northing", title = "ID 19 (n=5)") +
@@ -216,8 +210,6 @@ ggplot() +
   geom_sf(data = fl) +
   coord_sf(xlim = c(min(dat$utmlong-20000), max(dat$utmlong+20000)),
            ylim = c(min(dat$utmlat-20000), max(dat$utmlat+20000)), expand = FALSE) +
-  geom_path(data = dat27.full, aes(x=utmlong, y=utmlat), color="gray60", size=0.25) +
-  geom_point(data = dat27.full, aes(x=utmlong, y=utmlat), color='gray75', size=1) +
   geom_point(data = dat27, aes(utmlong, utmlat, color=behav.seg), size=1) +
   scale_color_viridis_c("Behavioral Segment") +
   labs(x = "Easting", y = "Northing", title = "ID 27 (n=2)") +

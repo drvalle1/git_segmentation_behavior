@@ -30,33 +30,3 @@ for (i in 1:ngibbs){
   }
   list(breakpt=breakpt,store.param=store.param)
 }
-#---------------------------------------------
-behav.gibbs.sampler_veloc=function(dat,ngibbs) {
-  set.seed(1)
-  
-#priors
-alpha=1
-
-#useful stuff
-max.time=max(dat$time1)
-max.Vp=max(dat$Vp, na.rm = T)
-max.Vt=max(dat$Vt, na.rm = T)
-
-#starting values
-breakpt=mean(dat$time1)
-
-#matrix to store results
-store.param=matrix(NA,ngibbs,2)
-
-for (i in 1:ngibbs){
-  print(i)
-  vals=samp.move2(breakpt=breakpt,max.time=max.time,dat=dat,
-                 alpha=alpha,max.Vp=max.Vp,max.Vt=max.Vt)   
-  
-  breakpt=vals[[1]]
-  
-  #store results
-  store.param[i,]=c(length(vals[[1]]), vals[[2]])
-  }
-list(breakpt=breakpt,store.param=store.param)
-}

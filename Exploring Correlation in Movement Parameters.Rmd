@@ -1,0 +1,100 @@
+---
+title: "Exploring Correlation in Movement Parameters"
+author: "Josh Cullen"
+date: "October 15, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+# Autocorrelation of SL, TA, and TAA
+
+Autcorrelation is common in the time series of animal trajectories. This document shows trends in autocorrelation of individual movement parameters at different sections of tracks (filtered for only 1 h time steps) for each ID. This is shown at different scales as well (lag.max = 50 or nobs).
+
+```{r}
+library(dplyr)
+
+source('helper functions.R')
+
+dat<- read.csv("Snail Kite Gridded Data.csv", header = T, sep = ",")
+names(dat)[7]<- "dist"  #change to generic form
+behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3600 s interval
+```
+
+## ID 1
+
+There are 6500 total observations in this dataset that have 1 h time steps. This will be split into four equal sections.
+
+### SL
+```{r, fig.cap="Autocorr of SL with a max lag of 50 observations."}
+dat1<- behav.list$`1`
+dat1$acf<- rep(1:4, each=nrow(dat1)/4)
+
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat1 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+```{r, fig.cap="Autocorr of SL with a max lag of 1625 observations."}
+dat1<- behav.list$`1`
+dat1$acf<- rep(1:4, each=nrow(dat1)/4)
+
+lag.max=nrow(dat1)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat1 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+
+### TA
+```{r, fig.cap="Autocorr of TA with a max lag of 50 observations."}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat1 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+```{r, fig.cap="Autocorr of TA with a max lag of 1625 observations."}
+lag.max=nrow(dat1)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat1 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+
+### TAA
+```{r, fig.cap="Autocorr of TA with a max lag of 50 observations."}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat1 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
+```{r, fig.cap="Autocorr of TA with a max lag of 1625 observations."}
+lag.max=nrow(dat1)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat1 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
