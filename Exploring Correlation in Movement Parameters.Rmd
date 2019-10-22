@@ -1,8 +1,12 @@
 ---
-title: "Exploring Correlation in Movement Parameters"
+title: "Exploring Autocorrelation in Movement Parameters"
 author: "Josh Cullen"
 date: "October 15, 2019"
-output: pdf_document
+output: 
+  pdf_document: 
+    fig_caption: yes
+
+
 ---
 
 ```{r setup, include=FALSE}
@@ -28,7 +32,7 @@ behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3
 There are 6500 total observations in this dataset that have 1 h time steps. This will be split into four equal sections.
 
 ### SL
-```{r, fig.cap="Autocorr of SL with a max lag of 50 observations."}
+```{r}
 dat1<- behav.list$`1`
 dat1$acf<- rep(1:4, each=nrow(dat1)/4)
 
@@ -41,10 +45,7 @@ for (i in 1:4) {
 }
 ```
 
-```{r, fig.cap="Autocorr of SL with a max lag of 1625 observations."}
-dat1<- behav.list$`1`
-dat1$acf<- rep(1:4, each=nrow(dat1)/4)
-
+```{r, fig.cap="Autocorrelation of SL with a max lag of 50  or 1625 observations."}
 lag.max=nrow(dat1)/4
 par(mfrow=c(2,2))
 
@@ -56,7 +57,7 @@ for (i in 1:4) {
 
 
 ### TA
-```{r, fig.cap="Autocorr of TA with a max lag of 50 observations."}
+```{r}
 lag.max=50
 par(mfrow=c(2,2))
 
@@ -66,7 +67,8 @@ for (i in 1:4) {
 }
 ```
 
-```{r, fig.cap="Autocorr of TA with a max lag of 1625 observations."}
+
+```{r, fig.cap="Autocorrelation of TA with a max lag of 50 or 1625 observations."}
 lag.max=nrow(dat1)/4
 par(mfrow=c(2,2))
 
@@ -78,7 +80,7 @@ for (i in 1:4) {
 
 
 ### TAA
-```{r, fig.cap="Autocorr of TA with a max lag of 50 observations."}
+```{r}
 lag.max=50
 par(mfrow=c(2,2))
 
@@ -88,7 +90,8 @@ for (i in 1:4) {
 }
 ```
 
-```{r, fig.cap="Autocorr of TA with a max lag of 1625 observations."}
+
+```{r, fig.cap="Autocorrelation of TAA with a max lag of 50 or 1625 observations."}
 lag.max=nrow(dat1)/4
 par(mfrow=c(2,2))
 
@@ -98,3 +101,248 @@ for (i in 1:4) {
 }
 ```
 
+
+Trends in autocorrelation differed among the three movement parameters. For SL, it appears that there's a 12 h cycle within the 1st section for at least up to 50 observations, but this cyclical patterns appears to be lost within the last 3 sections that generally have high autocorrelation (**Fig 1**). When visualizing the ACF across all observations within each section, there appears to be a slight sinusoidal pattern that emerges after the decrease in autocorrelation after the first 250 observations. Autocorrelation may be significant at a lag of 1 for TA, but is low for all subsequent observations. Similarly, there does not appear to be autocorrelation present in TAA.
+
+
+
+
+## ID 12
+
+There are 3513 total observations in this dataset that have 1 h time steps. This will be split into four (roughly) equal sections.
+
+### SL
+```{r}
+dat12<- behav.list$`12`
+dat12$acf<- c(1, rep(1:4, each=nrow(dat12)/4))
+
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat12 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+```{r, fig.cap="Autocorrelation of SL with a max lag of 50 or 878 observations."}
+lag.max=nrow(dat12)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat12 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+
+### TA
+```{r}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat12 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+
+```{r, fig.cap="Autocorrelation of TA with a max lag of 50 or 878 observations."}
+lag.max=nrow(dat12)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat12 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+
+### TAA
+```{r}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat12 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
+
+```{r, fig.cap="Autocorrelation of TAA with a max lag of 50 or 878 observations."}
+lag.max=nrow(dat12)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat12 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
+
+There may be a slight cyclical pattern in the autocorrelation of SL over short lags (~10 obs), but generally decreases until ~20-40 observations. Over the entire time series of each segment, it appears that there are longer-term cyclical patterns emerging, but at different temporal scales by section (**Fig 4**). This pattern appears different in **ID 12** compared to **ID 1**. The autocorrelation in TA and TAA are essentially identical to that of **ID 1**, however.
+
+
+
+
+## ID 19
+
+There are 1652 total observations in this dataset that have 1 h time steps. This will be split into four equal sections.
+
+### SL
+```{r}
+dat19<- behav.list$`19`
+dat19$acf<- rep(1:4, each=nrow(dat19)/4)
+
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat19 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+```{r, fig.cap="Autocorrelation of SL with a max lag of 50 or 413 observations."}
+lag.max=nrow(dat19)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat19 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+
+### TA
+```{r}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat19 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+
+```{r, fig.cap="Autocorrelation of TA with a max lag of 50 or 878 observations."}
+lag.max=nrow(dat19)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat19 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+
+### TAA
+```{r}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat19 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
+
+```{r, fig.cap="Autocorrelation of TAA with a max lag of 50 or 878 observations."}
+lag.max=nrow(dat19)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat19 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
+
+Autocorrelation in SL appears to occur until a lag of 10-20 observations, but also shows long-term cyclical patterns in ACF; these cyclical patterns fall within the confidence interval, however (**Fig 7**). This pattern appears similar to **ID 12**. Again, the autocorrelation in TA and TAA are essentially identical to that of **ID 1** and **ID 12** in that it is not significant and shows no patterns over time.
+
+
+
+
+## ID 27
+
+There are 1652 total observations in this dataset that have 1 h time steps. This will be split into four (roughly) equal sections.
+
+### SL
+```{r}
+dat27<- behav.list$`27`
+dat27$acf<- c(1,1,rep(1:4, each=nrow(dat27)/4))
+
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat27 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+```{r, fig.cap="Autocorrelation of SL with a max lag of 50 or 413 observations."}
+lag.max=nrow(dat27)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat27 %>% filter(acf==i) %>% select(SL)
+  acf(tmp, lag.max = lag.max, main=paste("SL: Section",i))
+}
+```
+
+
+### TA
+```{r}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat27 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+
+```{r, fig.cap="Autocorrelation of TA with a max lag of 50 or 878 observations."}
+lag.max=nrow(dat27)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat27 %>% filter(acf==i) %>% select(TA)
+  acf(tmp, lag.max = lag.max, main=paste("TA: Section",i), na.action = na.pass)
+}
+```
+
+
+### TAA
+```{r}
+lag.max=50
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat27 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
+
+```{r, fig.cap="Autocorrelation of TAA with a max lag of 50 or 878 observations."}
+lag.max=nrow(dat27)/4
+par(mfrow=c(2,2))
+
+for (i in 1:4) {
+  tmp<- dat27 %>% filter(acf==i) %>% select(TAA)
+  acf(tmp, lag.max = lag.max, main=paste("TAA: Section",i), na.action = na.pass)
+}
+```
+
+
+Autocorrelation in SL appears to occur until a lag of 10-20 observations, but  shows long-term cyclical patterns in ACF in the second through fourth sections; these cyclical patterns fall mostly within the confidence interval, however (**Fig 10**). This pattern appears similar to **ID 12**. Again, the autocorrelation in TA and TAA are essentially identical to that of **ID 1**, **ID 12**, **ID 19** in that it is not significant and shows no patterns over time.
+
+
+Cross-correlation among movement parameters was briefly explored as well, but due to the lack of signficance in the ACF of TA and TAA, there does not appear to be a significant trend when evaluating relationships of time series data.
