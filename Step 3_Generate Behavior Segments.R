@@ -1,6 +1,6 @@
-rm(list=ls(all=TRUE))
 
 library(dplyr)
+library(purrr)
 
 
 source('gibbs functions2.R')
@@ -164,3 +164,42 @@ plot(dat27.res$store.param[,1], type = "l", xlab = "Iterations", ylab = "# of Br
 #LML
 plot(dat27.res$store.param[,2], type = "l", xlab = "Iterations", ylab = "Log Marginal Likelihood",
      main = "ID 27")
+
+
+
+
+############################
+#### Import Breakpoints ####
+############################
+
+obs1.breakpts<- read.csv("ID1 Breakpoints (Behavior).csv", header = T, sep = ",")
+obs1.breakpts=obs1.breakpts[,1]
+obs12.breakpts<- read.csv("ID12 Breakpoints (Behavior).csv", header = T, sep = ",")
+obs12.breakpts=obs12.breakpts[,1]
+obs19.breakpts<- read.csv("ID19 Breakpoints (Behavior).csv", header = T, sep = ",")
+obs19.breakpts=obs19.breakpts[,1]
+obs27.breakpts<- read.csv("ID27 Breakpoints (Behavior).csv", header = T, sep = ",")
+obs27.breakpts=obs27.breakpts[,1]
+
+
+#########################################
+#### Assign Behavioral Time Segments ####
+#########################################
+
+dat1<- assign.behav.seg(breakpt = obs1.breakpts, dat = behav.list$`1`)
+dat12<- assign.behav.seg(breakpt = obs12.breakpts, dat = behav.list$`12`)
+dat19<- assign.behav.seg(breakpt = obs19.breakpts, dat = behav.list$`19`)
+dat27<- assign.behav.seg(breakpt = obs27.breakpts, dat = behav.list$`27`)
+
+dat2<- rbind(dat1, dat12, dat19, dat27)
+
+write.csv(dat2, "Snail Kite Gridded Data_behav.csv", row.names = F)
+
+
+##################################################
+#### Summarize and Export Move Param Distribs ####
+##################################################
+
+# obs<- get.summary.stats_behav(dat)
+
+# write.csv(obs, "Segmented Behavior Distributions.csv", row.names = F)
