@@ -1,13 +1,14 @@
 
 library(dplyr)
 library(purrr)
+library(progress) #for progress bar
 
 
 source('gibbs functions2.R')
 source('helper functions.R')
 source('gibbs sampler2.R')
 
-dat<- read.csv("Snail Kite Gridded Data.csv", header = T, sep = ",")
+dat<- read.csv("Snail Kite Gridded Data_large.csv", header = T, sep = ",")
 names(dat)[7]<- "dist"  #change to generic form
 behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3600 s interval
 
@@ -16,30 +17,27 @@ behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3
 #### Run Gibbs Sampler by ID ####
 #################################
 
+ngibbs = 50000
+
 ### ID 1
-dat1.res<- behav.gibbs.sampler(behav.list$`1`,50000)
+dat1.res<- behav.gibbs.sampler(dat = behav.list$`1`, ngibbs = ngibbs)
 
 length(dat1.res$breakpt)
-#write.csv(dat1.res$breakpt, "ID1 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(dat1.res$breakpt, "ID1 Breakpoints (Behavior)_new.csv", row.names = F)
 
 #PLOT
-png("ID 1 behav seg plot.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(3,1))
 plot(behav.list$`1`$SL, xlab = "", ylab = "SL"); abline(v=dat1.res$breakpt,col='red'); title(main="ID 1 (n=26)")
 plot(behav.list$`1`$TA, xlab = "", ylab = "TA"); abline(v=dat1.res$breakpt,col='red')
 plot(behav.list$`1`$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat1.res$breakpt,col='red')
-dev.off()
 
 
 #IMAGE
 behav.heat<- behav.seg.image(behav.list$`1`)
 
-png("ID 1 behav seg image.png", width = 8, height = 6, units = "in", res = 400)
-par(mfrow=c(3,1))
 image(behav.heat$SL, xlab = "", ylab = "SL"); abline(v=dat1.res$breakpt/nrow(behav.list$`1`),col='blue'); title(main="ID 1 (n=26)")
 image(behav.heat$TA, xlab = "", ylab = "TA"); abline(v=dat1.res$breakpt/nrow(behav.list$`1`),col='blue')
 image(behav.heat$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat1.res$breakpt/nrow(behav.list$`1`),col='blue')
-dev.off()
 
 
 ## MCMC traceplots
@@ -55,29 +53,24 @@ plot(dat1.res$store.param[,2], type = "l", xlab = "Iterations", ylab = "Log Marg
 
 
 ### ID 12
-dat12.res<- behav.gibbs.sampler(behav.list$`12`,50000)
+dat12.res<- behav.gibbs.sampler(dat = behav.list$`12`, ngibbs = ngibbs)
 
 length(dat12.res$breakpt)
-#write.csv(dat12.res$breakpt, "ID12 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(dat12.res$breakpt, "ID12 Breakpoints (Behavior)_new.csv", row.names = F)
 
 #PLOT
-png("ID 12 behav seg plot.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(3,1))
 plot(behav.list$`12`$SL, xlab = "", ylab = "SL"); abline(v=dat12.res$breakpt,col='red'); title(main="ID 12 (n=31)")
 plot(behav.list$`12`$TA, xlab = "", ylab = "TA"); abline(v=dat12.res$breakpt,col='red')
 plot(behav.list$`12`$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat12.res$breakpt,col='red')
-dev.off()
 
 
 #IMAGE
 behav.heat<- behav.seg.image(behav.list$`12`)
 
-png("ID 12 behav seg image.png", width = 8, height = 6, units = "in", res = 400)
-par(mfrow=c(3,1))
 image(behav.heat$SL, xlab = "", ylab = "SL"); abline(v=dat12.res$breakpt/nrow(behav.list$`12`),col='blue'); title(main="ID 12 (n=31)")
 image(behav.heat$TA, xlab = "", ylab = "TA"); abline(v=dat12.res$breakpt/nrow(behav.list$`12`),col='blue')
 image(behav.heat$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat12.res$breakpt/nrow(behav.list$`12`),col='blue')
-dev.off()
 
 
 ## MCMC traceplots
@@ -93,29 +86,24 @@ plot(dat12.res$store.param[,2], type = "l", xlab = "Iterations", ylab = "Log Mar
 
 
 ### ID 19
-dat19.res<- behav.gibbs.sampler(behav.list$`19`,50000)
+dat19.res<- behav.gibbs.sampler(dat = behav.list$`19`, ngibbs = ngibbs)
 
 length(dat19.res$breakpt)
-#write.csv(dat19.res$breakpt, "ID19 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(dat19.res$breakpt, "ID19 Breakpoints (Behavior)_new.csv", row.names = F)
 
 #PLOT
-png("ID 19 behav seg plot.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(3,1))
 plot(behav.list$`19`$SL, xlab = "", ylab = "SL"); abline(v=dat19.res$breakpt,col='red'); title(main="ID 19 (n=5)")
 plot(behav.list$`19`$TA, xlab = "", ylab = "TA"); abline(v=dat19.res$breakpt,col='red')
 plot(behav.list$`19`$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat19.res$breakpt,col='red')
-dev.off()
 
 
 #IMAGE
 behav.heat<- behav.seg.image(behav.list$`19`)
 
-png("ID 19 behav seg image.png", width = 8, height = 6, units = "in", res = 400)
-par(mfrow=c(3,1))
 image(behav.heat$SL, xlab = "", ylab = "SL"); abline(v=dat19.res$breakpt/nrow(behav.list$`19`),col='blue'); title(main="ID 19 (n=5)")
 image(behav.heat$TA, xlab = "", ylab = "TA"); abline(v=dat19.res$breakpt/nrow(behav.list$`19`),col='blue')
 image(behav.heat$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat19.res$breakpt/nrow(behav.list$`19`),col='blue')
-dev.off()
 
 
 ## MCMC traceplots
@@ -131,29 +119,24 @@ plot(dat19.res$store.param[,2], type = "l", xlab = "Iterations", ylab = "Log Mar
 
 
 ### ID 27
-dat27.res<- behav.gibbs.sampler(behav.list$`27`,50000)
+dat27.res<- behav.gibbs.sampler(dat = behav.list$`27`, ngibbs = ngibbs)
 
 length(dat27.res$breakpt)
-#write.csv(dat27.res$breakpt, "ID27 Breakpoints (Behavior).csv", row.names = F)
+#write.csv(dat27.res$breakpt, "ID27 Breakpoints (Behavior)_new.csv", row.names = F)
 
 #PLOT
-png("ID 27 behav seg plot.png", width = 8, height = 6, units = "in", res = 400)
 par(mfrow=c(3,1))
 plot(behav.list$`27`$SL, xlab = "", ylab = "SL"); abline(v=dat27.res$breakpt,col='red'); title(main="ID 27 (n=2)")
 plot(behav.list$`27`$TA, xlab = "", ylab = "TA"); abline(v=dat27.res$breakpt,col='red')
 plot(behav.list$`27`$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat27.res$breakpt,col='red')
-dev.off()
 
 
 #IMAGE
 behav.heat<- behav.seg.image(behav.list$`27`)
 
-png("ID 27 behav seg image.png", width = 8, height = 6, units = "in", res = 400)
-par(mfrow=c(3,1))
 image(behav.heat$SL, xlab = "", ylab = "SL"); abline(v=dat27.res$breakpt/nrow(behav.list$`27`),col='blue'); title(main="ID 27 (n=2)")
 image(behav.heat$TA, xlab = "", ylab = "TA"); abline(v=dat27.res$breakpt/nrow(behav.list$`27`),col='blue')
 image(behav.heat$TAA, xlab = "Time", ylab = "TAA"); abline(v=dat27.res$breakpt/nrow(behav.list$`27`),col='blue')
-dev.off()
 
 
 ## MCMC traceplots

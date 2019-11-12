@@ -1,5 +1,8 @@
 behav.gibbs.sampler=function(dat,ngibbs) {
 set.seed(1)
+pb <- progress_bar$new(
+    format = " iteration (:current/:total) [:bar] :percent [Elapsed: :elapsed, Remaining: :eta]",
+    total = ngibbs, clear = FALSE, width= 100)
 
 #priors
 alpha=1
@@ -17,7 +20,7 @@ breakpt=mean(dat$time1)
 store.param=matrix(NA,ngibbs,2)
 
 for (i in 1:ngibbs){
-  print(i)
+  pb$tick()  #create progress bar
   vals=samp.move(breakpt=breakpt,max.time=max.time,dat=dat,
                     alpha=alpha,bern.a=bern.a,bern.b=bern.b,
                     max.SL=max.SL,max.TA=max.TA)   
