@@ -83,6 +83,8 @@ assign.time.seg=function(dat){  #add tseg assignment to each obs
   tmp=which(unique(dat$id) == brkpts$id)
   breakpt<- brkpts[tmp,-1] %>% discard(is.na) %>% as.numeric(.[1,])
   breakpt1=c(0,breakpt,Inf)
+  tmp1<- which(diff(breakpt1) < 1)  #check for impossible time units
+  breakpt1[tmp1+1]<- breakpt1[(tmp1+1)] + 1  #fix impossible time units
   n=length(breakpt1)
   res=matrix(NA,nrow(dat),1)
   for (i in 2:n){

@@ -21,7 +21,7 @@ behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3
 #### Run Gibbs Sampler by ID ####
 #################################
 
-ngibbs = 20000
+ngibbs = 40000
 
 
 ## Run Gibbs sampler
@@ -29,7 +29,7 @@ plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
 dat.res<- behavior_segment(dat = behav.list, ngibbs = ngibbs)
-###Takes 36.37 min to run for 20000 iterations for 26 IDs
+###Takes 73.37 min to run for 40000 iterations for 26 IDs
 
 
 ## Traceplots
