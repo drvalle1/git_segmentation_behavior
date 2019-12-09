@@ -5,7 +5,6 @@ get.summary.stats=function(breakpt,dat,max.SL,max.TA){
   #get results for SL
   res.SL=matrix(0,n-1,max.SL)
   res.TA=matrix(0,n-1,max.TA)
-  res.TAA=matrix(0,n-1,2)
   for (i in 2:n){
     ind=which(breakpt1[i-1]<dat$time1 & dat$time1<breakpt1[i])
     tmp=dat[ind,]
@@ -20,20 +19,11 @@ get.summary.stats=function(breakpt,dat,max.SL,max.TA){
     ind=as.numeric(names(tmp1))
     res.TA[i-1,ind]=tmp1
     
-    #get TAA results
-    tmp1=tmp[,'TAA']
-    tmp1=if (length(tmp1[is.na(tmp1)])>0) {
-      tmp1[!is.na(tmp1)]
-      } else { tmp1
-    }
-    soma=sum(tmp1)
-    res.TAA[i-1,]=c(soma,length(tmp1)-soma)
   }
-  colnames(res.TAA)=c('n0','n1')
-  list(res.TA=res.TA,res.SL=res.SL,res.TAA=res.TAA)
+  list(res.TA=res.TA,res.SL=res.SL)
 }
 #---------------------------------------------
-log.marg.likel=function(alpha,summary.stats,bern.a,bern.b,max.SL,max.TA){
+log.marg.likel=function(alpha,summary.stats,max.SL,max.TA){
   #get ratio for SL
   lnum=rowSums(lgamma(alpha+summary.stats$res.SL))
   lden=lgamma(max.SL*alpha+rowSums(summary.stats$res.SL))
@@ -48,17 +38,10 @@ log.marg.likel=function(alpha,summary.stats,bern.a,bern.b,max.SL,max.TA){
   p1=nrow(summary.stats$res.TA)*(lgamma(max.TA*alpha)-max.TA*lgamma(alpha))
   p.TA=p1+p2
   
-  #get ratio for TAA
-  lnum=lgamma(bern.a+summary.stats$res.TAA[,'n1'])+lgamma(bern.b+summary.stats$res.TAA[,'n0'])
-  lden=lgamma(rowSums(summary.stats$res.TAA)+bern.a+bern.b)
-  p2=sum(lnum)-sum(lden)
-  p1=nrow(summary.stats$res.TAA)*(lgamma(bern.a+bern.b)-lgamma(bern.a)-lgamma(bern.b))
-  p.TAA=p1+p2
-  
-  p.SL+p.TA+p.TAA
+  p.SL+p.TA
 }
 #---------------------------------------------
-samp.move=function(breakpt,max.time,dat,alpha,bern.a,bern.b,max.SL,max.TA){
+samp.move=function(breakpt,max.time,dat,alpha,max.SL,max.TA){
   breakpt.old=breakpt
   p=length(breakpt)
   rand1=runif(1)	
@@ -97,8 +80,8 @@ samp.move=function(breakpt,max.time,dat,alpha,bern.a,bern.b,max.SL,max.TA){
   stats.new=get.summary.stats(breakpt=breakpt.new,dat=dat,max.SL=max.SL,max.TA=max.TA)
   
   #get marginal loglikel
-  pold=log.marg.likel(alpha=alpha,summary.stats=stats.old,bern.a=bern.a,bern.b=bern.b,max.SL=max.SL,max.TA=max.TA)
-  pnew=log.marg.likel(alpha=alpha,summary.stats=stats.new,bern.a=bern.a,bern.b=bern.b,max.SL=max.SL,max.TA=max.TA)+log(p0)
+  pold=log.marg.likel(alpha=alpha,summary.stats=stats.old,max.SL=max.SL,max.TA=max.TA)
+  pnew=log.marg.likel(alpha=alpha,summary.stats=stats.new,max.SL=max.SL,max.TA=max.TA)+log(p0)
   prob=exp(pnew-pold)
   rand2=runif(1)
   
