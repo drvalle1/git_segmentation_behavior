@@ -3,6 +3,7 @@ library(tidyverse)
 library(tictoc)
 library(furrr)
 library(viridis)
+library(lubridate)
 
 
 source('gibbs functions2.R')
@@ -10,9 +11,13 @@ source('helper functions.R')
 source('gibbs sampler2.R')
 
 dat<- read.csv("Snail Kite Gridded Data_larger.csv", header = T, sep = ",")
+dat$date<- dat$date %>% as_datetime()
+
+#if dt within 5 min of 1 hr, round to 1 hr
+dat<- round_track_time(dat = dat, int = 3600, tol = 5/60*3600)
 
 #remove IDs w < 200 obs; won't run well
-dat<- dat %>% group_by(id) %>% filter(n() > 200) %>% ungroup()
+# dat<- dat %>% group_by(id) %>% filter(n() > 200) %>% ungroup()
 dat.list<- df.to.list(dat=dat)
 behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3600 s interval
 
@@ -29,7 +34,7 @@ plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
 dat.res<- behavior_segment(dat = behav.list, ngibbs = ngibbs)
-###Takes 73.37 min to run for 40000 iterations for 26 IDs
+###Takes 1.41 hrs to run for 40000 iterations for 30 IDs
 
 
 ## Traceplots

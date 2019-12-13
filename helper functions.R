@@ -10,13 +10,8 @@ assign.rel_angle.bin=function(dat){  #creates 8 bins
 }
 #---------------------------------------------
 assign.dist.bin=function(dat){  #creates 6 bins
-  max.dist=max(dat$dist, na.rm = T) #using value from entire dataset, not specific time segment
-  upper90.thresh=as.numeric(quantile(dat$dist, 0.90, na.rm=T)) #using value from entire dataset
   
-  dist.bin.lims=seq(from=0, to=upper90.thresh, length.out = 6)
-  dist.bin.lims=c(dist.bin.lims, max.dist)
   dat$SL<- NA
-  #names(dat)[7]<- "dist"
   
   for(i in 1:length(dist.bin.lims)) {
     tmp=which(dat$dist >= dist.bin.lims[i] & dat$dist < dist.bin.lims[i+1])
@@ -37,14 +32,43 @@ chng.rel_angle.sign=function(dat){  #turning angle autocorr
   dat
 }
 #---------------------------------------------
+round_track_time=function(dat, int, tol) {  #replacement for sett0() when wanting to only round some of the times
+  dat<- df.to.list(dat)
+  
+  for (i in 1:length(dat)) {
+    tmp=matrix(NA,nrow(dat[[i]]),2)
+    
+    for (j in 1:nrow(dat[[i]])) {
+      if (is.na(dat[[i]]$dt[j])) {
+        tmp[j, 1:2]<- NA
+      } else if (dat[[i]]$dt[j] >= (int - tol) & dat[[i]]$dt[j] <= (int + tol)) {
+        tmp[j, 1:2]<- c(int, as.numeric(round(dat[[i]]$date[j], units = "hours")))
+      } else {
+        tmp[j, 1:2]<- c(dat[[i]]$dt[j], dat[[i]]$date[j])
+      }
+    }
+    dat[[i]]$dt<- tmp[,1]
+    dat[[i]]$date<- tmp[,2] %>% as.POSIXct(origin = '1970-01-01', tz = "UTC")
+  }
+  dat<- map_dfr(dat, `[`)
+  dat
+}
+#---------------------------------------------
 #discretize step length and turning angle by ID
 #only subset obs w/ 1 hr (3600 s) time step; results in loss of irregular obs
 behav.prep=function(dat,tstep) {
   id<- unique(dat$id)
   
+  #set bin limits for SL
+  max.dist=max(dat[dat$dt == 3600,]$dist, na.rm = T) #using value from entire dataset, not specific time segment
+  upper90.thresh=as.numeric(quantile(dat$dist, 0.90, na.rm=T)) #using value from entire dataset
+  
+  dist.bin.lims=seq(from=0, to=upper90.thresh, length.out = 6)
+  dist.bin.lims=c(dist.bin.lims, max.dist)
+  
   cond<- matrix(0, length(dat.list), 1)
-  for (i in 1:length(dat.list)) {  #don't include IDs w < 10 obs of dt == 3600
-    cond[i,]<- if(nrow(dat.list[[i]][dat.list[[i]]$dt == 3600,]) > 10) {
+  for (i in 1:length(dat.list)) {  #don't include IDs w < 1 obs of dt == 3600
+    cond[i,]<- if(nrow(dat.list[[i]][dat.list[[i]]$dt == 3600,]) > 1) {
       1
     } else {
       0
@@ -65,12 +89,12 @@ behav.prep=function(dat,tstep) {
 }
 #---------------------------------------------
 behav.seg.image=function(dat) {  #Transform single var vectors into pres/abs matrices for heatmap
-  SL<- matrix(0, nrow(dat), length(unique(dat$SL)))
+  SL<- matrix(0, nrow(dat), max(length(unique(dat$SL)), max(dat$SL), na.rm = T))
   for (i in 1:nrow(dat)){
     SL[i,dat$SL[i]]=1
   }
   
-  TA<- matrix(0, nrow(dat), length(unique(dat[!is.na(dat$TA),]$TA)))
+  TA<- matrix(0, nrow(dat), max(length(unique(dat[!is.na(dat$TA),]$TA)), max(dat$TA), na.rm = T))
   for (i in 1:nrow(dat)){
     TA[i,dat$TA[i]]=1
   }
@@ -150,15 +174,15 @@ plot.heatmap.behav=function(data, brkpts, dat.res) {
   names(SL)<- 1:6
   SL<- SL %>% gather(key, value) %>% mutate(time=rep(data$time1, times=6),
                                             behav=rep("SL", nrow(data)*6))
-  # SL$key<- as.numeric(SL$key)
   
   TA<- data.frame(behav.heat$TA)
   names(TA)<- 1:8
   TA<- TA %>% gather(key, value) %>% mutate(time=rep(data$time1, times=8),
                                             behav=rep("TA", nrow(data)*8))
-  # TA$key<- as.numeric(TA$key)
   
   behav.heat_long<- rbind(SL,TA)
+  behav.heat_long$value<- factor(behav.heat_long$value)
+  levels(behav.heat_long$value)<- c("Unoccupied","Occupied")
   
   ind=which(unique(data$id) == brkpts$id)
   breakpt<- brkpts[ind,-1] %>% discard(is.na) %>% t() %>% data.frame()
@@ -168,7 +192,7 @@ plot.heatmap.behav=function(data, brkpts, dat.res) {
   ggplot(behav.heat_long, aes(x=time, y=key, fill=value)) +
     geom_tile() +
     facet_wrap(~behav, scales = 'free', nrow = 2) +
-    scale_fill_viridis_c(guide=F) +
+    scale_fill_viridis_d('') +
     scale_y_discrete(expand = c(0,0)) +
     scale_x_continuous(expand = c(0,0)) +
     geom_vline(data = breakpt, aes(xintercept = breaks), color = viridis(n=9)[7],
