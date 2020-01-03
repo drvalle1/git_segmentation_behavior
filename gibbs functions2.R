@@ -6,7 +6,7 @@ get.summary.stats=function(breakpt,dat,max.SL,max.TA){
   res.SL=matrix(0,n-1,max.SL)
   res.TA=matrix(0,n-1,max.TA)
   for (i in 2:n){
-    ind=which(breakpt1[i-1]<dat$time1 & dat$time1<breakpt1[i])
+    ind=which(breakpt1[i-1] <= dat$time1 & dat$time1<breakpt1[i])
     tmp=dat[ind,]
     
     #get SL results
@@ -46,12 +46,12 @@ samp.move=function(breakpt,max.time,dat,alpha,max.SL,max.TA){
   p=length(breakpt)
   rand1=runif(1)	
   p0=1
-  new.brk=runif(1,min=0,max=max.time)
+  new.brk=sample(2:max.time,size=1)  #don't propose a brkpt = 1
   
   if (p == 1) {
     #birth
     if (rand1 < 1/2){
-      breakpt.new=sort(c(breakpt.old,new.brk))
+      breakpt.new=sort(unique(c(breakpt.old,new.brk)))
       p0=2/3 #death prob 2 -> 1 is (1/3) and birth prob 1 -> 2 is 1/2. 
     }
     #swap
@@ -60,7 +60,7 @@ samp.move=function(breakpt,max.time,dat,alpha,max.SL,max.TA){
   if (p > 1) {
     #birth
     if (rand1 < 1/3) {
-      breakpt.new=sort(c(breakpt.old,new.brk))
+      breakpt.new=sort(unique(c(breakpt.old,new.brk)))
     }
     #death
     if (rand1 > 1/3 & rand1 < 2/3) {
@@ -71,7 +71,7 @@ samp.move=function(breakpt,max.time,dat,alpha,max.SL,max.TA){
     #swap
     if (rand1 > 2/3) {
       ind=sample(1:length(breakpt.old),size=1)
-      breakpt.new=sort(c(breakpt.old[-ind],new.brk))
+      breakpt.new=sort(unique(c(breakpt.old[-ind],new.brk)))
     }
   }
   

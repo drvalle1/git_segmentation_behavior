@@ -9,7 +9,7 @@ assign.rel_angle.bin=function(dat){  #creates 8 bins
   dat
 }
 #---------------------------------------------
-assign.dist.bin=function(dat){  #creates 6 bins
+assign.dist.bin=function(dat, dist.bin.lims, max.dist){  #creates 6 bins
   
   dat$SL<- NA
   
@@ -60,15 +60,15 @@ behav.prep=function(dat,tstep) {
   id<- unique(dat$id)
   
   #set bin limits for SL
-  max.dist=max(dat[dat$dt == 3600,]$dist, na.rm = T) #using value from entire dataset, not specific time segment
+  max.dist=max(dat[dat$dt == tstep,]$dist, na.rm = T) #using value from entire dataset, not specific time segment
   upper90.thresh=as.numeric(quantile(dat$dist, 0.90, na.rm=T)) #using value from entire dataset
   
   dist.bin.lims=seq(from=0, to=upper90.thresh, length.out = 6)
   dist.bin.lims=c(dist.bin.lims, max.dist)
   
   cond<- matrix(0, length(dat.list), 1)
-  for (i in 1:length(dat.list)) {  #don't include IDs w < 1 obs of dt == 3600
-    cond[i,]<- if(nrow(dat.list[[i]][dat.list[[i]]$dt == 3600,]) > 1) {
+  for (i in 1:length(dat.list)) {  #don't include IDs w < 1 obs of dt == tstep
+    cond[i,]<- if(nrow(dat.list[[i]][dat.list[[i]]$dt == tstep,]) > 1) {
       1
     } else {
       0
@@ -83,21 +83,24 @@ behav.prep=function(dat,tstep) {
   
   for (i in 1:n) {
     behav.list[[i]]<- dat[dat$id==id[ind[i]],] %>% mutate(obs = 1:nrow(.)) %>% filter(dt==tstep) %>%
-                  mutate(time1 = 1:nrow(.)) %>% assign.rel_angle.bin() %>% assign.dist.bin()
+                  mutate(time1 = 1:nrow(.)) %>% assign.dist.bin(dist.bin.lims = dist.bin.lims,
+                                                                max.dist = max.dist) %>%
+                  assign.rel_angle.bin() 
   }
   behav.list
 }
 #---------------------------------------------
-behav.seg.image=function(dat) {  #Transform single var vectors into pres/abs matrices for heatmap
-  SL<- matrix(0, nrow(dat), max(length(unique(dat$SL)), max(dat$SL), na.rm = T))
+behav.seg.image=function(dat, nbins) {  #Transform single var vectors into pres/abs matrices for heatmap; nbins is vector of bins per param in order
+  SL<- matrix(0, nrow(dat), nbins[1])
   for (i in 1:nrow(dat)){
     SL[i,dat$SL[i]]=1
   }
   
-  TA<- matrix(0, nrow(dat), max(length(unique(dat[!is.na(dat$TA),]$TA)), max(dat$TA), na.rm = T))
+  TA<- matrix(0, nrow(dat), nbins[2])
   for (i in 1:nrow(dat)){
     TA[i,dat$TA[i]]=1
   }
+  
   
   behav.list<- list(SL=SL,TA=TA)
   behav.list
@@ -143,20 +146,20 @@ traceplot=function(data, type, identity) {  #create traceplots for nbrks or LML 
   on.exit(par(ask = FALSE))
 }
 #---------------------------------------------
-getMAP=function(dat,nburn) {  #select MAP value that is beyond burn-in phase
+getML=function(dat,nburn) {  #select ML value that is beyond burn-in phase
   if (which.max(dat[-1]) < nburn) {
-    MAP<- dat[-1] %>% order(decreasing = T) %>% subset(. > nburn) %>% first()
+    ML<- dat[-1] %>% order(decreasing = T) %>% subset(. > nburn) %>% first()
   } else {
-    MAP<- which.max(dat[-1])
+    ML<- which.max(dat[-1])
   }
-  return(MAP)
+  return(ML)
 }
 #---------------------------------------------
-getBreakpts=function(dat,MAP,brk.cols) {  #extract breakpoints of MAP per ID
+getBreakpts=function(dat,ML,brk.cols) {  #extract breakpoints of ML per ID
   tmp<- matrix(NA, length(dat), brk.cols)
   
   for(i in 1:length(dat)) {
-    ind<- MAP[i]
+    ind<- ML[i]
     tmp[i,1:length(dat[[i]][[ind]])]<- round(dat[[i]][[ind]], 2)
   }
   
@@ -166,19 +169,19 @@ getBreakpts=function(dat,MAP,brk.cols) {  #extract breakpoints of MAP per ID
   tmp
 }
 #------------------------------------------------
-plot.heatmap.behav=function(data, brkpts, dat.res) {
+plot.heatmap.behav=function(data, nbins, brkpts, dat.res) {
   
-  behav.heat<- behav.seg.image(data)
+  behav.heat<- behav.seg.image(data, nbins)
   
   SL<- data.frame(behav.heat$SL)
-  names(SL)<- 1:6
-  SL<- SL %>% gather(key, value) %>% mutate(time=rep(data$time1, times=6),
-                                            behav=rep("SL", nrow(data)*6))
+  names(SL)<- 1:nbins[1]
+  SL<- SL %>% gather(key, value) %>% mutate(time=rep(data$time1, times=nbins[1]),
+                                            behav=rep("SL", nrow(data)*nbins[1]))
   
   TA<- data.frame(behav.heat$TA)
-  names(TA)<- 1:8
-  TA<- TA %>% gather(key, value) %>% mutate(time=rep(data$time1, times=8),
-                                            behav=rep("TA", nrow(data)*8))
+  names(TA)<- 1:nbins[2]
+  TA<- TA %>% gather(key, value) %>% mutate(time=rep(data$time1, times=nbins[2]),
+                                            behav=rep("TA", nrow(data)*nbins[2]))
   
   behav.heat_long<- rbind(SL,TA)
   behav.heat_long$value<- factor(behav.heat_long$value)
@@ -205,17 +208,17 @@ plot.heatmap.behav=function(data, brkpts, dat.res) {
   )
 }
 #------------------------------------------------
-heatmap=function(data, brkpts, dat.res, type) {  #type can either be 'loc' or 'behav'
+plot.heatmap=function(data, nbins, brkpts, dat.res, type) {  #type can either be 'loc' or 'behav'
   
   if (type == "loc") {
     par(ask = TRUE)
-    map(data, ~plot.heatmap.loc(., brkpts = brkpts, dat.res = dat.res))
+    map(data, ~plot.heatmap.loc(., nbins = nbins, brkpts = brkpts, dat.res = dat.res))
     par(ask = FALSE)
   } else if (type == "behav") {
     par(ask = TRUE)
-    map(data, ~plot.heatmap.behav(., brkpts = brkpts, dat.res = dat.res))
+    map(data, ~plot.heatmap.behav(., nbins = nbins, brkpts = brkpts, dat.res = dat.res))
     par(ask = FALSE)
   } else {
-    warning("Need to select type as either 'loc' or 'behav'")
+    stop("Need to select type as either 'loc' or 'behav'")
   }
 }

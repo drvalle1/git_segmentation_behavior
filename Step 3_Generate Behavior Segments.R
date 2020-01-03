@@ -16,10 +16,9 @@ dat$date<- dat$date %>% as_datetime()
 #if dt within 5 min of 1 hr, round to 1 hr
 dat<- round_track_time(dat = dat, int = 3600, tol = 5/60*3600)
 
-#remove IDs w < 200 obs; won't run well
-# dat<- dat %>% group_by(id) %>% filter(n() > 200) %>% ungroup()
 dat.list<- df.to.list(dat=dat)
 behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3600 s interval
+behav.list<- behav.list[sapply(behav.list, nrow) > 2]  #remove IDs w/ fewer than 3 obs
 
 
 #################################
@@ -34,7 +33,7 @@ plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
 dat.res<- behavior_segment(dat = behav.list, ngibbs = ngibbs)
-###Takes 1.41 hrs to run for 40000 iterations for 30 IDs
+###Takes 1 hr to run 40000 iterations for 31 IDs
 
 
 ## Traceplots
@@ -44,13 +43,14 @@ identity<- names(behav.list)
 traceplot(data = dat.res$nbrks, type = "nbrks", identity = identity)
 traceplot(data = dat.res$LML, type = "LML", identity = identity)
 
-##Determine MAP for selecting breakpoints
-MAP<- apply(dat.res$LML, 1, function(x) getMAP(dat = x, nburn = 500))
-brkpts<- getBreakpts(dat = dat.res$brkpts, MAP = MAP, brk.cols = 99)  #brk.cols is max matrix cols
+
+##Determine maximum likelihood (ML) for selecting breakpoints
+ML<- apply(dat.res$LML, 1, function(x) getML(dat = x, nburn = 500))
+brkpts<- getBreakpts(dat = dat.res$brkpts, ML = ML, brk.cols = 99)  #brk.cols is max matrix cols
 
 
 ## Heatmaps
-heatmap(data = behav.list, brkpts = brkpts, dat.res = dat.res, type = "behav")
+plot.heatmap(data = behav.list, nbins = c(6,8), brkpts = brkpts, dat.res = dat.res, type = "behav")
 
 
 

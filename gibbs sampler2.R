@@ -12,7 +12,7 @@ behav.gibbs.sampler=function(dat,ngibbs) {
   max.TA=max(dat$TA, na.rm = T)
   
   #starting values
-  breakpt=mean(dat$time1)
+  breakpt=floor(mean(dat$time1))
   
   #to store results
   res.brks=vector("list", ngibbs)
