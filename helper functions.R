@@ -108,7 +108,7 @@ behav.seg.image=function(dat, nbins) {  #Transform single var vectors into pres/
 #---------------------------------------
 assign.time.seg=function(dat){  #add tseg assignment to each obs
   tmp=which(unique(dat$id) == brkpts$id)
-  breakpt<- brkpts[tmp,-1] %>% discard(is.na) %>% as.numeric(.[1,])
+  breakpt<- brkpts[tmp,-1] %>% purrr::discard(is.na) %>% as.numeric(.[1,])
   breakpt1=c(0,breakpt,Inf)
   tmp1<- which(diff(breakpt1) < 1)  #check for impossible time units
   breakpt1[tmp1+1]<- breakpt1[(tmp1+1)] + 1  #fix impossible time units
@@ -141,7 +141,7 @@ traceplot=function(data, type, identity) {  #create traceplots for nbrks or LML 
          ylab = ifelse(type == "nbrks", "# of Breakpoints",
                        ifelse(type == "LML","Log Marginal Likelihood",
                               stop("Need to select one of 'nbrks' or 'LML' for plotting"))),
-         main = paste("ID",data[i,1]))
+         main = paste("ID",rownames(data)[i]))
   }
   on.exit(par(ask = FALSE))
 }
@@ -163,9 +163,10 @@ getBreakpts=function(dat,ML,brk.cols) {  #extract breakpoints of ML per ID
     tmp[i,1:length(dat[[i]][[ind]])]<- round(dat[[i]][[ind]], 2)
   }
   
-  tmp<- cbind(id = identity, tmp) %>% data.frame()
+  tmp<- data.frame(tmp)
+  tmp<- cbind(id = identity, tmp)
   names(tmp)<- c('id', paste0("Brk_",1:brk.cols))
-  tmp<- mutate_all(tmp, function(x) as.numeric(as.character(x)))
+  
   tmp
 }
 #------------------------------------------------
@@ -188,7 +189,7 @@ plot.heatmap.behav=function(data, nbins, brkpts, dat.res) {
   levels(behav.heat_long$value)<- c("Unoccupied","Occupied")
   
   ind=which(unique(data$id) == brkpts$id)
-  breakpt<- brkpts[ind,-1] %>% discard(is.na) %>% t() %>% data.frame()
+  breakpt<- brkpts[ind,-1] %>% purrr::discard(is.na) %>% t() %>% data.frame()
   names(breakpt)<- "breaks"
   
   print(

@@ -10,7 +10,7 @@ source('gibbs functions2.R')
 source('helper functions.R')
 source('gibbs sampler2.R')
 
-dat<- read.csv("Snail Kite Gridded Data_larger.csv", header = T, sep = ",")
+dat<- read.csv("Snail Kite Gridded Data_TOHO.csv", header = T, sep = ",")
 dat$date<- dat$date %>% as_datetime()
 
 #if dt within 5 min of 1 hr, round to 1 hr
@@ -33,7 +33,7 @@ plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
 dat.res<- behavior_segment(dat = behav.list, ngibbs = ngibbs)
-###Takes 1 hr to run 40000 iterations for 31 IDs
+###Takes 48 min to run 40000 iterations for 26 IDs
 
 
 ## Traceplots
@@ -61,6 +61,6 @@ plot.heatmap(data = behav.list, nbins = c(6,8), brkpts = brkpts, dat.res = dat.r
 dat_out<- map(behav.list, assign.time.seg) %>% map_dfr(`[`)  #assign time seg and make as DF
 
 setwd("~/Documents/Snail Kite Project/Data/R Scripts/git_LDA_behavior")
-write.csv(dat_out, "Snail Kite Gridded Data_larger_behav.csv", row.names = F)
+write.csv(dat_out, "Snail Kite Gridded Data_TOHO_behav.csv", row.names = F)
 
 
