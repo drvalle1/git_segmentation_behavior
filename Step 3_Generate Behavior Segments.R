@@ -19,6 +19,7 @@ dat<- round_track_time(dat = dat, int = 3600, tol = 5/60*3600)
 dat.list<- df.to.list(dat=dat)
 behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3600 s interval
 behav.list<- behav.list[sapply(behav.list, nrow) > 2]  #remove IDs w/ fewer than 3 obs
+behav.list2<- lapply(behav.list, function(x) subset(x, select = c(id, SL, TA)))  #retain id and parameters on which to segment
 
 
 #################################
@@ -32,8 +33,8 @@ ngibbs = 40000
 plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
-dat.res<- behavior_segment(dat = behav.list, ngibbs = ngibbs)
-###Takes 48 min to run 40000 iterations for 26 IDs
+dat.res<- behavior_segment(dat = behav.list2, ngibbs = ngibbs, nbins = c(6,8))
+###Takes 12.5 min to run 40000 iterations for 26 IDs
 
 
 ## Traceplots
