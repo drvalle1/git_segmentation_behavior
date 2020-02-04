@@ -1,11 +1,8 @@
-behav.gibbs.sampler=function(dat,ngibbs,nbins) {
+behav.gibbs.sampler=function(dat,ngibbs,nbins,alpha) {
   set.seed(1)
   
   uni.id=unique(dat$id)
   dat=subset(dat, select = -id)
-  
-  #priors
-  alpha=1
   
   #useful stuff
   max.time=nrow(dat)
@@ -43,11 +40,12 @@ behav.gibbs.sampler=function(dat,ngibbs,nbins) {
   list(breakpt=res.brks, nbrks=res.nbrks, LML=res.LML)
 }
 #----------------------------------------------------
-behavior_segment=function(data, ngibbs, nbins) {
+behavior_segment=function(data, ngibbs, nbins, alpha) {
   
   tic()  #start timer
   mod<- future_map(data, function(x) behav.gibbs.sampler(dat = x, ngibbs = ngibbs,
-                                                         nbins = nbins), .progress = TRUE)
+                                                         nbins = nbins, alpha = alpha),
+                   .progress = TRUE)
   toc()  #provide elapsed time
   
   

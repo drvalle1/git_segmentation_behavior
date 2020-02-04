@@ -10,31 +10,31 @@ source('gibbs functions2.R')
 source('helper functions.R')
 source('gibbs sampler2.R')
 
-dat<- read.csv("Snail Kite Gridded Data_TOHO.csv", header = T, sep = ",")
+dat<- read.csv("Modified Armadillo Data.csv", header = T, sep = ",")
 dat$date<- dat$date %>% as_datetime()
 
 #if dt within 5 min of 1 hr, round to 1 hr
-dat<- round_track_time(dat = dat, int = 3600, tol = 5/60*3600)
+dat<- round_track_time(dat = dat, int = 300, tol = 1/60*3600)
 
 dat.list<- df.to.list(dat=dat)
 
-#filter data for tstep of interest
-behav.list<- behav.prep(dat=dat, tstep = 3600)  #add move params and filter by 3600 s interval
+#filter data for dt of interest
+behav.list<- behav.prep(dat=dat, tstep = 300)  #add move params and filter by 3600 s interval
 
-#define bin number and limits for step lengths and turning angles
-angle.bin.lims=seq(from=-pi, to=pi, by=pi/4)  #8 bins
+#add discretized mvmt params
+angle.bin.lims=seq(from=-pi, to=pi, by=pi/4)
+max.dist=max(dat[dat$dt == 300,]$dist, na.rm = T) #using value from entire dataset, not specific time segment
+upper90.thresh=as.numeric(quantile(dat[dat$dt == 300,]$dist, 0.90, na.rm=T)) #using value from entire dataset of given tstep
+# dist.bin.lims=seq(from=0, to=upper90.thresh, length.out = 5)
+dist.bin.lims=as.numeric(quantile(dat[dat$dt == 300,]$dist, c(0,0.30,0.60,0.90), na.rm=T))
+dist.bin.lims=c(dist.bin.lims, max.dist)
 
-max.dist=max(dat[dat$dt == 3600,]$dist, na.rm = T)
-upper90.thresh=as.numeric(quantile(dat[dat$dt == 3600,]$dist, 0.90, na.rm=T)) 
-dist.bin.lims=seq(from=0, to=upper90.thresh, length.out = 5)
-dist.bin.lims=c(dist.bin.lims, max.dist)  #6 bins
-
-#assign bins to obs
 for (i in 1:length(behav.list)) {
-  behav.list[[i]]<- behav.list[[i]] %>% assign.dist.bin(dist.bin.lims = dist.bin.lims,
-                                                        max.dist = max.dist) %>%
-    assign.rel_angle.bin(angle.bin.lims = angle.bin.lims)
+behav.list[[i]]<- behav.list[[i]] %>% assign.dist.bin(dist.bin.lims = dist.bin.lims,
+                                                 max.dist = max.dist) %>%
+                                 assign.rel_angle.bin(angle.bin.lims = angle.bin.lims)
 }
+
 
 behav.list<- behav.list[sapply(behav.list, nrow) > 2]  #remove IDs w/ fewer than 3 obs
 behav.list2<- lapply(behav.list, function(x) subset(x, select = c(id, SL, TA)))  #retain id and parameters on which to segment
@@ -51,10 +51,7 @@ ngibbs = 40000
 plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
-#prior
-alpha=1
-
-dat.res<- behavior_segment(dat = behav.list2, ngibbs = ngibbs, nbins = c(6,8), alpha = alpha)
+dat.res<- behavior_segment(dat = behav.list2, ngibbs = ngibbs, nbins = c(4,8))
 ###Takes 12.5 min to run 40000 iterations for 26 IDs
 
 
@@ -72,7 +69,7 @@ brkpts<- getBreakpts(dat = dat.res$brkpts, ML = ML, brk.cols = 99)  #brk.cols is
 
 
 ## Heatmaps
-plot.heatmap(data = behav.list, nbins = c(6,8), brkpts = brkpts, dat.res = dat.res, type = "behav")
+plot.heatmap(data = behav.list, nbins = c(4,8), brkpts = brkpts, dat.res = dat.res, type = "behav")
 
 
 

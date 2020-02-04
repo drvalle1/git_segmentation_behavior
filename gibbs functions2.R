@@ -10,7 +10,10 @@ get.summary.stats=function(breakpt,dat,max.time,nbins,ndata.types){
     
     #get summary for each interval
     for (i in 2:n){
-      ind=breakpt1[i-1]:(breakpt1[i]-1)
+      if (i < n)
+        ind=breakpt1[i-1]:(breakpt1[i]-1)
+      if (i == n)
+        ind=breakpt1[i-1]:(breakpt1[i])
       tmp=dat[ind,j]
       tmp1=table(tmp)
       ind=as.numeric(names(tmp1))
@@ -36,7 +39,7 @@ log.marg.likel=function(alpha,summary.stats,nbins,ndata.types){
 samp.move=function(breakpt,max.time,dat,alpha,nbins,ndata.types){
   breakpt.old=breakpt
   p=length(breakpt)
-  new.brk=sample(2:max.time,size=1)  #don't propose a brkpt = 1
+  new.brk=sample(2:max.time,size=1)  #don't propose a new.brk at brkpt = 1
   brk.augmented=sort(unique(c(breakpt.old,new.brk)))
   
   p0=1  

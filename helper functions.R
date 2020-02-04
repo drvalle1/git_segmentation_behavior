@@ -1,5 +1,4 @@
-assign.rel_angle.bin=function(dat){  #creates 8 bins
-  angle.bin.lims=seq(from=-pi, to=pi, by=pi/4)
+assign.rel_angle.bin=function(dat, angle.bin.lims){
   dat$TA<- NA
   
   for(i in 1:length(angle.bin.lims)) {
@@ -9,7 +8,7 @@ assign.rel_angle.bin=function(dat){  #creates 8 bins
   dat
 }
 #---------------------------------------------
-assign.dist.bin=function(dat, dist.bin.lims, max.dist){  #creates 6 bins
+assign.dist.bin=function(dat, dist.bin.lims, max.dist){
   
   dat$SL<- NA
   
@@ -18,33 +17,35 @@ assign.dist.bin=function(dat, dist.bin.lims, max.dist){  #creates 6 bins
     dat[tmp,"SL"]=i
   }
   tmp=which(dat$dist == max.dist)
-  dat[tmp,"SL"]=6
+  dat[tmp,"SL"]=length(dist.bin.lims) - 1
   
-  dat
-}
-#---------------------------------------------
-chng.rel_angle.sign=function(dat){  #turning angle autocorr
-  dat$TAA<- NA
-  
-  for(i in 1:(nrow(dat)-1)) {
-    dat$TAA[i+1]<- ifelse(sign(dat$rel.angle[i]) == sign(dat$rel.angle[i+1]), 1, 0)
-  }
   dat
 }
 #---------------------------------------------
 round_track_time=function(dat, int, tol) {  #replacement for sett0() when wanting to only round some of the times
   dat<- df.to.list(dat)
-  
   for (i in 1:length(dat)) {
     tmp=matrix(NA,nrow(dat[[i]]),2)
-    
-    for (j in 1:nrow(dat[[i]])) {
-      if (is.na(dat[[i]]$dt[j])) {
-        tmp[j, 1:2]<- NA
-      } else if (dat[[i]]$dt[j] >= (int - tol) & dat[[i]]$dt[j] <= (int + tol)) {
-        tmp[j, 1:2]<- c(int, as.numeric(round(dat[[i]]$date[j], units = "hours")))
-      } else {
-        tmp[j, 1:2]<- c(dat[[i]]$dt[j], dat[[i]]$date[j])
+    if (length(int) == 1) {  #when using only 1 time interval
+      for (j in 1:nrow(dat[[i]])) {
+        if (is.na(dat[[i]]$dt[j])) {
+          tmp[j, 1:2]<- NA
+        } else if (dat[[i]]$dt[j] >= (int - tol) & dat[[i]]$dt[j] <= (int + tol)) {
+          tmp[j, 1:2]<- c(int, as.numeric(round(dat[[i]]$date[j], units = "hours")))
+        } else {
+          tmp[j, 1:2]<- c(dat[[i]]$dt[j], dat[[i]]$date[j])
+        }
+      }
+    } else {  #when using more than one time interval
+      for (j in 1:nrow(dat[[i]])) {
+        if (is.na(dat[[i]]$dt[j])) {
+          tmp[j, 1:2]<- NA
+        } else if (sum(dat[[i]]$dt[j] >= (int - tol) & dat[[i]]$dt[j] <= (int + tol)) > 0) {
+          ind<- which(dat[[i]]$dt[j] >= (int - tol) & dat[[i]]$dt[j] <= (int + tol))
+          tmp[j, 1:2]<- c(int[ind], as.numeric(round(dat[[i]]$date[j], units = "hours")))
+        } else {
+          tmp[j, 1:2]<- c(dat[[i]]$dt[j], dat[[i]]$date[j])
+        }
       }
     }
     dat[[i]]$dt<- tmp[,1]
@@ -58,13 +59,6 @@ round_track_time=function(dat, int, tol) {  #replacement for sett0() when wantin
 #only subset obs w/ 1 hr (3600 s) time step; results in loss of irregular obs
 behav.prep=function(dat,tstep) {
   id<- unique(dat$id)
-  
-  #set bin limits for SL
-  max.dist=max(dat[dat$dt == tstep,]$dist, na.rm = T) #using value from entire dataset, not specific time segment
-  upper90.thresh=as.numeric(quantile(dat$dist, 0.90, na.rm=T)) #using value from entire dataset
-  
-  dist.bin.lims=seq(from=0, to=upper90.thresh, length.out = 6)
-  dist.bin.lims=c(dist.bin.lims, max.dist)
   
   cond<- matrix(0, length(dat.list), 1)
   for (i in 1:length(dat.list)) {  #don't include IDs w < 1 obs of dt == tstep
@@ -83,9 +77,7 @@ behav.prep=function(dat,tstep) {
   
   for (i in 1:n) {
     behav.list[[i]]<- dat[dat$id==id[ind[i]],] %>% mutate(obs = 1:nrow(.)) %>% filter(dt==tstep) %>%
-                  mutate(time1 = 1:nrow(.)) %>% assign.dist.bin(dist.bin.lims = dist.bin.lims,
-                                                                max.dist = max.dist) %>%
-                  assign.rel_angle.bin() 
+                  mutate(time1 = 1:nrow(.)) 
   }
   behav.list
 }
@@ -106,7 +98,7 @@ behav.seg.image=function(dat, nbins) {  #Transform single var vectors into pres/
   behav.list
 }
 #---------------------------------------
-assign.time.seg=function(dat){  #add tseg assignment to each obs
+assign.time.seg=function(dat, brkpts){  #add tseg assignment to each obs
   tmp=which(unique(dat$id) == brkpts$id)
   breakpt<- brkpts[tmp,-1] %>% purrr::discard(is.na) %>% as.numeric(.[1,])
   breakpt1=c(0,breakpt,Inf)
